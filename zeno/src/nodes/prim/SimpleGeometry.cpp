@@ -954,8 +954,6 @@ struct CreateSphere : zeno::INode {
         auto radius = get_input2<float>("radius");
         auto quad = get_input2<bool>("quads");
 
-        ROTATE_MATRIX
-
         if (rows < 2) {
             rows = 2;
         }
@@ -963,7 +961,7 @@ struct CreateSphere : zeno::INode {
             columns = 3;
         }
 
-        auto &uvs = prim->verts.add_attr<zeno::vec3f>("uv");
+        std::vector<zeno::vec3f> uvs = {};
         auto &nors = prim->verts.add_attr<zeno::vec3f>("nrm");
         auto &verts = prim->verts;
         auto &tris = prim->tris;
@@ -973,88 +971,29 @@ struct CreateSphere : zeno::INode {
         auto &poly = prim->polys;
         auto &loops = prim->loops;
 
-        verts.resize((rows + 1) * (columns + 1));
-        for (auto row = 0; row <= rows; row++) {
+        prim->verts.resize((rows-1) * columns + 2);
+        uvs.resize((rows-1) * columns);
+        for (auto row = 1; row < rows; row++) {
             float v = (float)row / (float)rows;
             float theta = M_PI * v;
-            for (auto column = 0; column <= columns; column++) {
+            for (auto column = 0; column < columns; column++) {
                 float u = (float)column / (float)columns;
                 float phi = M_PI * 2 * u;
                 float x = sin(theta) * cos(phi);
                 float z = -sin(theta) * sin(phi);
                 float y = cos(theta) ;
-                auto index = (columns + 1) * row + column;
+                int index = columns * (row - 1) + column;
                 vec3f n = vec3f(x, y, z);
                 verts[index] = n;
                 nors[index] = n;
                 uvs[index] = vec3f(u, 1-v, 0);
             }
         }
-        {
-            poly.resize(rows * columns);
-            for (auto i = 0; i < rows * columns; i++) {
-                poly[i] = vec2i(i * 4, 4);
-            }
-            loops.resize(rows * columns * 4);
-            for (auto row = 0; row < rows; row++) {
-                for (auto column = 0; column < columns; column++) {
-                    auto quad_index = row * columns + column;
-                    if (column == columns - 1) {
-                        auto v0 = (columns + 1) * row + column;
-                        auto v1 = (columns + 1) * row;
-                        auto v2 = (columns + 1) * (row + 1) + column;
-                        auto v3 = (columns + 1) * (row + 1);
-                        loops[quad_index * 4 + 0] = v0;
-                        loops[quad_index * 4 + 1] = v2;
-                        loops[quad_index * 4 + 2] = v3;
-                        loops[quad_index * 4 + 3] = v1;
-                    }
-                    else {
-                        auto v0 = (columns + 1) * row + column;
-                        auto v1 = (columns + 1) * row + column + 1;
-                        auto v2 = (columns + 1) * (row + 1) + column;
-                        auto v3 = (columns + 1) * (row + 1) + column + 1;
-                        loops[quad_index * 4 + 0] = v0;
-                        loops[quad_index * 4 + 1] = v2;
-                        loops[quad_index * 4 + 2] = v3;
-                        loops[quad_index * 4 + 3] = v1;
-                    }
-                }
-            }
-            prim->uvs.resize(verts.size());
-            for (auto i = 0; i < verts.size(); i++) {
-                prim->uvs[i] = vec2f(uvs[i][0], uvs[i][1]);
-            }
-            auto& loopuvs = prim->loops.add_attr<int>("uvs");
-            for (auto i = 0; i < loops.size(); i++) {
-                loopuvs[i] = loops[i];
-            }
-        }
+        verts[verts.size() - 2] = vec3f(0, 1, 0);
+        nors[verts.size() - 2] = vec3f(0, 1, 0);
+        verts[verts.size() - 1] = vec3f(0, -1, 0);
+        nors[verts.size() - 1] = vec3f(0, -1, 0);
 
-        for (int i = 0; i < verts->size(); i++)
-        {
-            auto p = verts[i];
-            auto n = nors[i];
-
-            p = p * scale * radius ;
-
-            ROTATE_COMPUTE
-
-                p+= position;
-
-            auto gn = glm::vec3(n[0], n[1], n[2]);
-            gn = mz * my * mx * gn;
-            n = zeno::vec3f(gn.x, gn.y, gn.z);
-
-            verts[i] = p;
-            nors[i] = n;
-        }
-
-        NORMUV_CIHOU
-
-        if (!quad) {
-            primTriangulate(prim.get());
-        }
         set_output("prim", std::move(prim));
     }
 };
