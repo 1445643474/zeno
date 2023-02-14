@@ -962,12 +962,7 @@ struct CreateSphere : zeno::INode {
         }
 
         std::vector<zeno::vec3f> uvs = {};
-        auto &nors = prim->verts.add_attr<zeno::vec3f>("nrm");
         auto &verts = prim->verts;
-        auto &tris = prim->tris;
-        auto &uv0 = prim->tris.add_attr<zeno::vec3f>("uv0");
-        auto &uv1 = prim->tris.add_attr<zeno::vec3f>("uv1");
-        auto &uv2 = prim->tris.add_attr<zeno::vec3f>("uv2");
         auto &poly = prim->polys;
         auto &loops = prim->loops;
 
@@ -983,18 +978,14 @@ struct CreateSphere : zeno::INode {
                 float z = -sin(theta) * sin(phi);
                 float y = cos(theta) ;
                 int index = columns * (row - 1) + column;
-                vec3f n = vec3f(x, y, z);
-                verts[index] = n;
-                nors[index] = n;
+                verts[index] = vec3f(x, y, z);
                 uvs[index] = vec3f(u, 1-v, 0);
             }
         }
         int top_index = verts.size() - 2;
         int bottom_index = verts.size() - 1;
         verts[top_index] = vec3f(0, 1, 0);
-        nors[top_index] = vec3f(0, 1, 0);
         verts[bottom_index] = vec3f(0, -1, 0);
-        nors[bottom_index] = vec3f(0, -1, 0);
 
         prim->loops.resize((rows - 2) * columns * 4 + 2 * columns * 3);
         for (auto c = 0; c < columns; c++) {
