@@ -989,10 +989,43 @@ struct CreateSphere : zeno::INode {
                 uvs[index] = vec3f(u, 1-v, 0);
             }
         }
-        verts[verts.size() - 2] = vec3f(0, 1, 0);
-        nors[verts.size() - 2] = vec3f(0, 1, 0);
-        verts[verts.size() - 1] = vec3f(0, -1, 0);
-        nors[verts.size() - 1] = vec3f(0, -1, 0);
+        int top_index = verts.size() - 2;
+        int bottom_index = verts.size() - 1;
+        verts[top_index] = vec3f(0, 1, 0);
+        nors[top_index] = vec3f(0, 1, 0);
+        verts[bottom_index] = vec3f(0, -1, 0);
+        nors[bottom_index] = vec3f(0, -1, 0);
+
+        prim->loops.resize((rows - 2) * columns * 4 + 2 * columns * 3);
+        for (auto c = 0; c < columns; c++) {
+            for (auto r = 0; r < (rows - 2); r++) {
+                int index = r * columns + c;
+                prim->loops[index * 4 + 0] = r * columns + c;
+                prim->loops[index * 4 + 1] = r * columns + columns + c;
+                prim->loops[index * 4 + 2] = r * columns + columns + (c + 1) % columns;
+                prim->loops[index * 4 + 3] = r * columns + (c + 1) % columns;
+            }
+        }
+        int tri_loops_start = (rows - 2) * columns * 4;
+        int tris_poly_start = (rows - 2) * columns;
+        for (auto c = 0; c < columns; c++) {
+            prim->loops[tri_loops_start + c * 3 + 0] = top_index;
+            prim->loops[tri_loops_start + c * 3 + 1] = c;
+            prim->loops[tri_loops_start + c * 3 + 2] = (c + 1) % columns;
+        }
+        for (auto c = 0; c < columns; c++) {
+            prim->loops[tri_loops_start + columns * 3 + c * 3 + 0] = bottom_index;
+            prim->loops[tri_loops_start + columns * 3 + c * 3 + 1] = tris_poly_start + (c + 1) % columns;
+            prim->loops[tri_loops_start + columns * 3 + c * 3 + 2] = tris_poly_start + c;
+        }
+
+        prim->polys.resize(rows * columns);
+        for (auto i = 0; i < (rows - 2) * columns; i++) {
+            prim->polys[i] = {i * 4, 4};
+        }
+        for (auto i = 0; i < columns * 2; i++) {
+            prim->polys[tris_poly_start + i] = {tri_loops_start + i * 3, 3};
+        }
 
         set_output("prim", std::move(prim));
     }
