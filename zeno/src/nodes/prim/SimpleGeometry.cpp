@@ -961,25 +961,28 @@ struct CreateSphere : zeno::INode {
             columns = 3;
         }
 
-        std::vector<zeno::vec3f> uvs = {};
+        std::vector<zeno::vec2f> uvs = {};
+        std::vector<int> loops_uv = {};
         auto &verts = prim->verts;
         auto &poly = prim->polys;
         auto &loops = prim->loops;
 
         prim->verts.resize((rows-1) * columns + 2);
-        uvs.resize((rows-1) * columns);
         for (auto row = 1; row < rows; row++) {
             float v = (float)row / (float)rows;
             float theta = M_PI * v;
-            for (auto column = 0; column < columns; column++) {
+            for (auto column = 0; column <= columns; column++) {
                 float u = (float)column / (float)columns;
+                uvs.emplace_back(u, 1-v);
+                if (column == columns) {
+                    continue;
+                }
                 float phi = M_PI * 2 * u;
                 float x = sin(theta) * cos(phi);
                 float z = -sin(theta) * sin(phi);
                 float y = cos(theta) ;
                 int index = columns * (row - 1) + column;
                 verts[index] = vec3f(x, y, z);
-                uvs[index] = vec3f(u, 1-v, 0);
             }
         }
         int top_index = verts.size() - 2;
@@ -988,26 +991,47 @@ struct CreateSphere : zeno::INode {
         verts[bottom_index] = vec3f(0, -1, 0);
 
         prim->loops.resize((rows - 2) * columns * 4 + 2 * columns * 3);
-        for (auto c = 0; c < columns; c++) {
-            for (auto r = 0; r < (rows - 2); r++) {
+        for (auto r = 0; r < (rows - 2); r++) {
+            for (auto c = 0; c < columns; c++) {
                 int index = r * columns + c;
                 prim->loops[index * 4 + 0] = r * columns + c;
                 prim->loops[index * 4 + 1] = r * columns + columns + c;
                 prim->loops[index * 4 + 2] = r * columns + columns + (c + 1) % columns;
                 prim->loops[index * 4 + 3] = r * columns + (c + 1) % columns;
+                loops_uv.push_back(r * (columns + 1) + c);
+                loops_uv.push_back(r * (columns + 1) + (columns + 1) + c);
+                loops_uv.push_back(r * (columns + 1) + (columns + 1) + c + 1);
+                loops_uv.push_back(r * (columns + 1) + c + 1);
             }
         }
         int tri_loops_start = (rows - 2) * columns * 4;
+        int tri_poly_uv_start = (rows - 2) * (columns + 1);
         int tris_poly_start = (rows - 2) * columns;
         for (auto c = 0; c < columns; c++) {
             prim->loops[tri_loops_start + c * 3 + 0] = top_index;
             prim->loops[tri_loops_start + c * 3 + 1] = c;
             prim->loops[tri_loops_start + c * 3 + 2] = (c + 1) % columns;
+            uvs.emplace_back(float(c) / float(columns), 1);
+            loops_uv.push_back(uvs.size() - 1);
+            loops_uv.push_back(c);
+            loops_uv.push_back(c + 1);
         }
         for (auto c = 0; c < columns; c++) {
             prim->loops[tri_loops_start + columns * 3 + c * 3 + 0] = bottom_index;
             prim->loops[tri_loops_start + columns * 3 + c * 3 + 1] = tris_poly_start + (c + 1) % columns;
             prim->loops[tri_loops_start + columns * 3 + c * 3 + 2] = tris_poly_start + c;
+            uvs.emplace_back(float(c) / float(columns), 0);
+            loops_uv.push_back(uvs.size() - 1);
+            loops_uv.push_back(tri_poly_uv_start + c + 1);
+            loops_uv.push_back(tri_poly_uv_start + c);
+        }
+        prim->uvs.resize(uvs.size());
+        for (auto i = 0; i < uvs.size(); i++) {
+            prim->uvs[i] = uvs[i];
+        }
+        auto &ref_loops_uv = loops.add_attr<int>("uvs");
+        for (auto i = 0; i < loops_uv.size(); i++) {
+            ref_loops_uv[i] = loops_uv[i];
         }
 
         prim->polys.resize(rows * columns);
