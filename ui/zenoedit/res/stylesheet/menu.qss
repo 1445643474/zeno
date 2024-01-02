@@ -73,3 +73,18 @@ QMenuBar[cssClass="docktoolbar"] {
     background: transparent;
     color: #737B85;
 }
+
+
+QToolBar
+{
+	spacing: 10px;
+}
+
+QToolBar::separator {
+    width: 2px;
+    background-color: #000;
+}
+
+QStatusBar QLabel {
+    margin:0 5px;
+}

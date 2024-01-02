@@ -10,6 +10,7 @@
 #include <QSvgRenderer>
 #include <zeno/extra/TempNode.h>
 #include <zeno/extra/assetDir.h>
+#include <zenoui/comctrl/dialog/zdrawingboarddlg.h>
 
 
 ZenoParamWidget::ZenoParamWidget(QGraphicsItem* parent, Qt::WindowFlags wFlags)
@@ -319,6 +320,8 @@ void ZenoParamPathEdit::mousePressEvent(QGraphicsSceneMouseEvent *event)
             path = QFileDialog::getOpenFileName(nullptr, "File to Open", dirPath, "All Files(*);;");
         } else if (m_control == CONTROL_WRITEPATH) {
             path = QFileDialog::getSaveFileName(nullptr, "Path to Save", dirPath, "All Files(*);;");
+        } else if (m_control == CONTROL_DRAWINGPATH) {
+            path = ZDrawingBoardDlg::getImage(nullptr, text());
         } else {
             path = QFileDialog::getExistingDirectory(nullptr, "Path to Save", "");
         }

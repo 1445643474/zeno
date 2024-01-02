@@ -32,6 +32,11 @@ void ZFramelessDialog::setTitleText(const QString& text)
     m_pLbTitle->setText(text);
 }
 
+QString ZFramelessDialog::titleText()
+{
+    return m_pLbTitle->text();
+}
+
 void ZFramelessDialog::initTitleWidget()
 {
     m_pLbIcon = new QLabel(this);

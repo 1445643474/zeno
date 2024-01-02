@@ -1,6 +1,7 @@
 #include "zpathedit.h"
 #include "zlineedit.h"
 #include <zenomodel/include/modeldata.h>
+#include "dialog/zdrawingboarddlg.h"
 
 
 
@@ -30,6 +31,8 @@ void ZPathEdit::initUI(const CALLBACK_SWITCH& cbSwitch)
             path = QFileDialog::getOpenFileName(nullptr, "File to Open", "", "All Files(*);;");
         } else if (ctrl == CONTROL_WRITEPATH) {
             path = QFileDialog::getSaveFileName(nullptr, "Path to Save", "", "All Files(*);;");
+        } else if (ctrl == CONTROL_DRAWINGPATH) {
+            path = ZDrawingBoardDlg::getImage(this, text());
         } else {
             path = QFileDialog::getExistingDirectory(nullptr, "Path to Save", "");
         }

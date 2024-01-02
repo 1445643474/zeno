@@ -13,6 +13,7 @@ public:
     void setMainWidget(QWidget* pWidget);
     void setTitleIcon(const QIcon& icon);
     void setTitleText(const QString& text);
+    QString titleText();
 
 protected:
     void mousePressEvent(QMouseEvent* event);
