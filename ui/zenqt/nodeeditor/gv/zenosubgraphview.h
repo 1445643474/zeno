@@ -56,6 +56,7 @@ public slots:
 signals:
     void zoomed(qreal);
     void viewChanged(qreal);
+    void moveSignal();
 
 private:
     void set_modifiers(Qt::KeyboardModifiers modifiers);
@@ -121,6 +122,7 @@ protected:
 signals:
 	void pathUpdated(QStringList);
     void zoomed(qreal);
+    void viewChanged(QGraphicsView* pView);
 
 public slots:
     void onPathUpdated(QStringList path);

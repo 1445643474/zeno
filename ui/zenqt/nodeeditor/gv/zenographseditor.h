@@ -9,6 +9,7 @@ class ZenoWelcomePage;
 class ZenoMainWindow;
 class ZenoSubGraphView;
 class GraphModel;
+class BreviaryDlg;
 
 namespace Ui
 {
@@ -89,6 +90,7 @@ private:
     int m_searchOpts;
 
     ZenoWelcomePage* m_pWelcomPage;
+    BreviaryDlg* m_pBreviaryDlg;
 };
 
 

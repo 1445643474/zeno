@@ -22,6 +22,7 @@
 #include "model/GraphModel.h"
 #include "zenowelcomepage.h"
 #include "thumbnailview.h"
+#include "dialog/breviarydlg.h"
 
 
 bool sceneMenuEvent(
@@ -393,6 +394,7 @@ void _ZenoSubGraphView::mouseMoveEvent(QMouseEvent* event)
         QPointF delta = last_pos - current_pos;
         translate(-delta.x(), -delta.y());
         _last_mouse_pos = event->pos();
+        emit moveSignal();
     }
     QGraphicsView::mouseMoveEvent(event);
 }
@@ -819,7 +821,8 @@ void ZenoSubGraphView::resetPath(const QStringList& path, const QString& objId, 
     }
 
     bool bShowThumbnail = ZenoSettingsManager::GetInstance().getValue(zsShowThumbnail).toBool();
-    showThumbnail(bShowThumbnail);
+    //showThumbnail(bShowThumbnail);
+    emit viewChanged(pCurrentView);
 }
 
 void ZenoSubGraphView::setZoom(const qreal& scale)

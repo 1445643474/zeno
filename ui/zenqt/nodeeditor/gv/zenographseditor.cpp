@@ -27,12 +27,14 @@
 #include "widgets/zlabel.h"
 #include "nodeeditor/gv/callbackdef.h"
 #include <zeno/core/Session.h>
+#include "dialog/breviarydlg.h"
 
 
 ZenoGraphsEditor::ZenoGraphsEditor(ZenoMainWindow* pMainWin)
     : QWidget(nullptr)
     , m_mainWin(pMainWin)
     , m_searchOpts(SEARCHALL)
+    , m_pBreviaryDlg(nullptr)
 {
     initUI();
     initModel();
@@ -85,6 +87,12 @@ void ZenoGraphsEditor::initUI()
     m_pWelcomPage = new ZenoWelcomePage(this);
     m_pWelcomPage->initRecentFiles();
     m_pWelcomPage->hide();
+
+    m_pBreviaryDlg = new BreviaryDlg(this);
+    bool bShowThumbnail = ZenoSettingsManager::GetInstance().getValue(zsShowThumbnail).toBool();
+    m_pBreviaryDlg->setVisible(bShowThumbnail);
+    m_pBreviaryDlg->move(this->geometry().bottomRight() - QPoint(m_pBreviaryDlg->width(), m_pBreviaryDlg->height()));
+
 }
 
 void ZenoGraphsEditor::initModel()
@@ -572,9 +580,13 @@ void ZenoGraphsEditor::activateTab(const QStringList& subgpath, const QString& f
             graphsMgm->addScene(subgpath, pScene);
             pScene->initModel(pGraphM);
         }
-        ZenoSubGraphView* pView = new ZenoSubGraphView;
+        ZenoSubGraphView* pView = new ZenoSubGraphView(this);
         connect(pView, &ZenoSubGraphView::zoomed, pScene, &ZenoSubGraphScene::onZoomed);
         connect(pView, &ZenoSubGraphView::zoomed, this, &ZenoGraphsEditor::zoomed);
+        connect(pView, &ZenoSubGraphView::viewChanged, this, [=](QGraphicsView* pView) {
+            if (m_pBreviaryDlg)
+                m_pBreviaryDlg->setView(pView);
+        });
 
         if (ZenoWelcomePage* page = qobject_cast<ZenoWelcomePage*>(m_ui->splitter->widget(1)))  //if is welcompage, replace with graphsViewTab
             m_ui->splitter->replaceWidget(1, m_ui->graphsViewTab);
@@ -958,8 +970,10 @@ void ZenoGraphsEditor::onAction(QAction* pAction, const QVariantList& args, bool
     int actionType = pAction->property("ActionType").toInt();
     if (actionType == ZenoMainWindow::ACTION_SHOWTHUMB)
     {
-        ZenoSubGraphView* pView = qobject_cast<ZenoSubGraphView*>(m_ui->graphsViewTab->currentWidget());
-        pView->showThumbnail(bChecked);
+        //ZenoSubGraphView* pView = qobject_cast<ZenoSubGraphView*>(m_ui->graphsViewTab->currentWidget());
+        //pView->showThumbnail(bChecked);
+        if (m_pBreviaryDlg)
+            m_pBreviaryDlg->setVisible(bChecked);
     }
     if (actionType == ZenoMainWindow::ACTION_REARRANGE_GRAPH)
     {
