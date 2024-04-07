@@ -233,6 +233,18 @@ void ZenoGraphsEditor::onSubGraphsToRemove(const QModelIndex& parent, int first,
     }
 }
 
+bool ZenoGraphsEditor::event(QEvent* event)
+{
+    if (event->type() == QEvent::Hide)
+        m_pBreviaryDlg->hide();
+    else if (event->type() == QEvent::Show)
+    {
+        bool bShowThumbnail = ZenoSettingsManager::GetInstance().getValue(zsShowThumbnail).toBool();
+        m_pBreviaryDlg->setVisible(bShowThumbnail);
+    }
+    return QWidget::event(event);
+}
+
 void ZenoGraphsEditor::onAssetsToRemove(const QModelIndex& parent, int first, int last)
 {
     ZASSERT_EXIT(!parent.isValid());

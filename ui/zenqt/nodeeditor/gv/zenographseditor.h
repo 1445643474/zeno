@@ -60,7 +60,8 @@ public slots:
 
 signals:
     void zoomed(qreal);
-
+protected:
+    bool event(QEvent *event) override;
 private slots:
 	void onSubGraphsToRemove(const QModelIndex&, int, int);
     void onAssetsToRemove(const QModelIndex& parent, int first, int last);

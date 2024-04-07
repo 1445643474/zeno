@@ -20,8 +20,10 @@ protected:
 
 public slots:
     void updateRectSize();
+    void sceneChangedSlot(const QList<QRectF>& region);
 private:
     void updatePixmap();
+    bool isDragArea();
 private:
     QPixmap m_pixmap;
     QRectF m_rect;
@@ -29,5 +31,6 @@ private:
     bool m_bMove;
     QGraphicsView* m_pView;
     qreal m_scale;
+    QPoint m_bottomRight;
 };
 #endif // BREVIARYITEM_H
